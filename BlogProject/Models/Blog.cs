@@ -33,18 +33,12 @@ namespace BlogProject.Models
         // Navigation Property
         public virtual ICollection<BlogEntry> BlogEntries { get; set; } = new List<BlogEntry>();
 
-        // Servis uyumu için alias'lar
-        [NotMapped]
-        public int UserId
-        {
-            get => OwnerId;
-            set => OwnerId = value;
-        }
-
-        [NotMapped]
-        public User? User => Owner;
-
         [NotMapped]
         public ICollection<BlogEntry> Posts => BlogEntries;
+
+
+       
+
+      
     }
 }

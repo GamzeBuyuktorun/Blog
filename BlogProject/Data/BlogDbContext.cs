@@ -11,6 +11,10 @@ namespace BlogProject.Data
 
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<BlogEntry> Posts { get; set; }
+        public DbSet<BlogEntry> BlogEntries { get; set; }
+
+        
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

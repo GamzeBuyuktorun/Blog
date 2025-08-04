@@ -1,7 +1,12 @@
-﻿@using Microsoft.AspNetCore.Identity
-@using BlogProject.Models
-@inject SignInManager<User> SignInManager
-@inject UserManager<User> UserManager
+﻿@using BlogProject.Models
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var session = HttpContextAccessor.HttpContext?.Session;
+    var userId = session?.GetInt32("UserId");
+    var userName = session?.GetString("UserName");
+    bool isLoggedIn = userId != null;
+}
 
 <!DOCTYPE html>
 <html lang="tr">
@@ -27,7 +32,7 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Home" asp-action="Index">Anasayfa</a>
                         </li>
-                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        @if (isLoggedIn)
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Blog" asp-action="MyBlogs">📚 Bloglarım</a>
@@ -39,10 +44,10 @@
                     </ul>
 
                     <ul class="navbar-nav ms-auto">
-                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        @if (isLoggedIn)
                         {
                             <li class="nav-item">
-                                <span class="nav-link">👤 @User.Identity.Name</span>
+                                <span class="nav-link">👤 @userName</span>
                             </li>
                             <li class="nav-item">
                                 <form method="post" asp-controller="Account" asp-action="Logout" class="d-inline">

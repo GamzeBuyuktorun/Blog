@@ -1,7 +1,5 @@
 using BlogProject.Data;
 using BlogProject.Models;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,28 +8,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<BlogDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Identity
-builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
-{
-    options.Password.RequireDigit = false;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireLowercase = false;
-    options.Password.RequiredLength = 6;
-})
-.AddEntityFrameworkStores<BlogDbContext>()
-.AddDefaultTokenProviders();
-
-// Cookie Authentication
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.LoginPath = "/Account/Login";
-    options.LogoutPath = "/Account/Logout";
-    options.Cookie.HttpOnly = true;
-});
+// Sadece session kullanılacaksa Identity'a gerek yok!
+// builder.Services.AddIdentity<...>(...) kaldırıldı
 
 // Session
-builder.Services.AddSession();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Oturum süresi
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// Session + Context kullanımı için gerekli
+builder.Services.AddHttpContextAccessor();
 
 // MVC
 builder.Services.AddControllersWithViews();
@@ -50,11 +39,11 @@ else
 
 app.UseStaticFiles();
 app.UseRouting();
-app.UseSession();
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseSession(); // <- ÖNEMLİ
 
-// Route
+// app.UseAuthentication(); // kaldırıldı
+// app.UseAuthorization();  // kaldırıldı
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

@@ -1,9 +1,9 @@
 using BlogProject.Data;
 using BlogProject.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlogProject.Controllers
 {
@@ -41,6 +41,21 @@ namespace BlogProject.Controllers
                 return View(user);
             }
 
+            // Eğer kullanıcı adı boşsa, email'den türet
+            if (string.IsNullOrWhiteSpace(user.UserName))
+            {
+                var baseUsername = user.Email.Split('@')[0];
+                var username = baseUsername;
+                int count = 1;
+
+                while (await _context.Users.AnyAsync(u => u.UserName == username))
+                {
+                    username = $"{baseUsername}{count++}";
+                }
+
+                user.UserName = username;
+            }
+
             user.PasswordHash = HashPassword(user.PasswordHash);
             user.CreatedAt = DateTime.UtcNow;
 
@@ -67,27 +82,32 @@ namespace BlogProject.Controllers
                 return View();
             }
 
-            // oturum açılıyor
+            if (string.IsNullOrEmpty(user.UserName))
+                user.UserName = "Bilinmeyen";
+
             HttpContext.Session.SetInt32("UserId", user.Id);
             HttpContext.Session.SetString("UserName", user.UserName);
 
             return RedirectToAction("Index", "Home");
         }
 
+        // POST: /Account/Logout
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
             return RedirectToAction("Login");
         }
 
+        // Şifre hash'leme
         private string HashPassword(string password)
         {
             using var hmac = new HMACSHA512();
             var salt = hmac.Key;
             var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(salt) + ":" + Convert.ToBase64String(hash);
+            return $"{Convert.ToBase64String(salt)}:{Convert.ToBase64String(hash)}";
         }
 
+        // Şifre doğrulama
         private bool VerifyPassword(string password, string hashedPassword)
         {
             var parts = hashedPassword.Split(':');
@@ -98,6 +118,7 @@ namespace BlogProject.Controllers
 
             using var hmac = new HMACSHA512(salt);
             var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+
             return computedHash.SequenceEqual(hash);
         }
     }
