@@ -1,65 +1,42 @@
-using Microsoft.EntityFrameworkCore;
 using BlogProject.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlogProject.Data
 {
-    public class BlogDbContext : DbContext
+    public class BlogDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
-        public BlogDbContext(DbContextOptions<BlogDbContext> options) : base(options)
-        {
-        }
+        public BlogDbContext(DbContextOptions<BlogDbContext> options) : base(options) { }
 
-        public DbSet<User> Users { get; set; }
         public DbSet<Blog> Blogs { get; set; }
-        public DbSet<BlogEntry> BlogEntries { get; set; }
+        public DbSet<BlogEntry> Posts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(modelBuilder); // Identity şeması
 
-            // User unique constraints
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Username)
-                .IsUnique()
-                .HasDatabaseName("IX_Users_Username");
-
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique()
-                .HasDatabaseName("IX_Users_Email");
-
-            // Blog unique constraint ve cascade delete
             modelBuilder.Entity<Blog>()
                 .HasIndex(b => new { b.OwnerId, b.Slug })
                 .IsUnique()
                 .HasDatabaseName("uniq_blog_owner_id_slug");
 
-            modelBuilder.Entity<Blog>()
-                .HasOne(b => b.Owner)
-                .WithMany(u => u.Blogs)
-                .HasForeignKey(b => b.OwnerId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // BlogEntry unique constraint ve cascade delete
             modelBuilder.Entity<BlogEntry>()
-                .HasIndex(be => new { be.BlogId, be.Slug })
+                .HasIndex(e => new { e.BlogId, e.Slug })
                 .IsUnique()
                 .HasDatabaseName("uniq_blog_message_blog_id_slug");
 
-            modelBuilder.Entity<BlogEntry>()
-                .HasOne(be => be.Blog)
-                .WithMany(b => b.BlogEntries)
-                .HasForeignKey(be => be.BlogId)
+            modelBuilder.Entity<User>()
+                .HasMany<Blog>()
+                .WithOne(b => b.Owner)
+                .HasForeignKey(b => b.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // DateTime default values for SQLite
-            modelBuilder.Entity<BlogEntry>()
-                .Property(be => be.CreatedAt)
-                .HasDefaultValueSql("datetime('now')");
-
-            modelBuilder.Entity<BlogEntry>()
-                .Property(be => be.UpdatedAt)
-                .HasDefaultValueSql("datetime('now')");
+            modelBuilder.Entity<Blog>()
+                .HasMany<BlogEntry>()
+                .WithOne(e => e.Blog)
+                .HasForeignKey(e => e.BlogId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

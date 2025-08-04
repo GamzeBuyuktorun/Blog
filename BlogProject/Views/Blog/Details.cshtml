@@ -1,0 +1,26 @@
+@model Blog
+
+@{
+    ViewData["Title"] = "Blog Detayı";
+}
+
+<h2>@Model.Title</h2>
+<p><strong>Slug:</strong> @Model.Slug</p>
+<p><strong>Sahibi:</strong> @Model.Owner.UserName</p>
+
+@if (Model.Posts.Count == 0)
+{
+    <p>Henüz yazı eklenmemiş.</p>
+}
+else
+{
+    <h4>Yazılar</h4>
+    <ul>
+        @foreach (var post in Model.Posts)
+        {
+            <li>
+                <strong>@post.Title</strong> - @post.CreatedAt.ToString("yyyy-MM-dd")
+            </li>
+        }
+    </ul>
+}

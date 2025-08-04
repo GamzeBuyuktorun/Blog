@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -21,11 +23,28 @@ namespace BlogProject.Models
         [Column(TypeName = "varchar(200)")]
         public string Title { get; set; } = string.Empty;
 
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
         // Foreign Key
         [ForeignKey("OwnerId")]
         public virtual User Owner { get; set; } = null!;
 
         // Navigation Property
         public virtual ICollection<BlogEntry> BlogEntries { get; set; } = new List<BlogEntry>();
+
+        // Servis uyumu için alias'lar
+        [NotMapped]
+        public int UserId
+        {
+            get => OwnerId;
+            set => OwnerId = value;
+        }
+
+        [NotMapped]
+        public User? User => Owner;
+
+        [NotMapped]
+        public ICollection<BlogEntry> Posts => BlogEntries;
     }
 }
