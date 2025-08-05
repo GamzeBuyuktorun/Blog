@@ -1,0 +1,22 @@
+@model Blog
+
+@{
+    ViewData["Title"] = "Blog Sil";
+}
+
+<h2>Blog'u Sil</h2>
+<p>Bu blog'u silmek istediğinizden emin misiniz?</p>
+
+<dl class="row">
+    <dt class="col-sm-2">Başlık</dt>
+    <dd class="col-sm-10">@Model.Title</dd>
+
+    <dt class="col-sm-2">Slug</dt>
+    <dd class="col-sm-10">@Model.Slug</dd>
+</dl>
+
+<form method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Sil</button>
+    <a asp-action="MyBlogs" class="btn btn-secondary">İptal</a>
+</form>
