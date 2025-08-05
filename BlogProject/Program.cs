@@ -8,18 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<BlogDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Sadece session kullanılacaksa Identity'a gerek yok!
-// builder.Services.AddIdentity<...>(...) kaldırıldı
-
 // Session
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Oturum süresi
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
 
-// Session + Context kullanımı için gerekli
 builder.Services.AddHttpContextAccessor();
 
 // MVC
@@ -39,11 +35,9 @@ else
 
 app.UseStaticFiles();
 app.UseRouting();
-app.UseSession(); // <- ÖNEMLİ
+app.UseSession();
 
-// app.UseAuthentication(); // kaldırıldı
-// app.UseAuthorization();  // kaldırıldı
-
+// ✅ SADECE BU ROUTE YETERLİ
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

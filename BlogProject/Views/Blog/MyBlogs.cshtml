@@ -24,7 +24,8 @@ else
                 </div>
                 <div>
                     <a asp-action="Edit" asp-route-id="@blog.Id" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
-                    <a asp-action="Details" asp-route-id="@blog.Id" class="btn btn-sm btn-info me-2">📄 Görüntüle</a>
+                   <a asp-action="Details" asp-route-slug="@blog.Slug" class="btn btn-sm btn-info me-2">📄 Görüntüle</a>
+
                     <form asp-action="Delete" asp-route-id="@blog.Id" method="post" class="d-inline" onsubmit="return confirm('Bu blog silinsin mi?');">
                         <button type="submit" class="btn btn-sm btn-danger">🗑️ Sil</button>
                     </form>

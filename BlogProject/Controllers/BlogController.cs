@@ -103,23 +103,24 @@ namespace BlogProject.Controllers
             return RedirectToAction("MyBlogs");
         }
 
-     [HttpGet]
-public async Task<IActionResult> Details(int id)
-{
-    var blog = await _context.Blogs
-        .Include(b => b.BlogEntries)  // sade navigation property
-      
-        .Include(b => b.Owner)
-        .FirstOrDefaultAsync(b => b.Id == id);
+        // SLUG tabanlı Details action
+        [HttpGet("/blog/slug/{slug}")]
+         public async Task<IActionResult> Details(string slug)
 
-    if (blog == null) return NotFound();
+        {
+            var blog = await _context.Blogs
+                .Include(b => b.BlogEntries)
+                .Include(b => b.Owner)
+                .FirstOrDefaultAsync(b => b.Slug == slug);
 
-    // İsteğe bağlı: Post'ları sıralamak için View içinde sıralama yaparız
-    blog.BlogEntries = blog.BlogEntries.OrderByDescending(p => p.CreatedAt).ToList();
+            if (blog == null) return NotFound();
 
-    return View(blog);
-}
+            blog.BlogEntries = blog.BlogEntries
+                .OrderByDescending(p => p.CreatedAt)
+                .ToList();
 
+            return View(blog);
+        }
 
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
@@ -134,24 +135,23 @@ public async Task<IActionResult> Details(int id)
         }
 
         [HttpPost, ActionName("Delete")]
-public async Task<IActionResult> DeleteConfirmed(int id)
-{
-    var userId = GetCurrentUserId();
-    if (userId == null) return RedirectToAction("Login", "Account");
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction("Login", "Account");
 
-    var blog = await _context.Blogs
-        .Include(b => b.BlogEntries) // Doğru navigation property
-        .FirstOrDefaultAsync(b => b.Id == id && b.OwnerId == userId);
+            var blog = await _context.Blogs
+                .Include(b => b.BlogEntries)
+                .FirstOrDefaultAsync(b => b.Id == id && b.OwnerId == userId);
 
-    if (blog == null) return NotFound();
+            if (blog == null) return NotFound();
 
-    _context.BlogEntries.RemoveRange(blog.BlogEntries);
-    _context.Blogs.Remove(blog);
-    await _context.SaveChangesAsync();
+            _context.BlogEntries.RemoveRange(blog.BlogEntries);
+            _context.Blogs.Remove(blog);
+            await _context.SaveChangesAsync();
 
-    return RedirectToAction("MyBlogs");
-}
-
+            return RedirectToAction("MyBlogs");
+        }
 
         private string GenerateSlug(string title)
         {
@@ -162,7 +162,9 @@ public async Task<IActionResult> DeleteConfirmed(int id)
                 title = title.Replace(invalids[i], replaces[i]);
             }
 
-            return System.Text.RegularExpressions.Regex.Replace(title.ToLower(), @"[^a-z0-9\s-]", "").Replace(" ", "-");
+            return System.Text.RegularExpressions.Regex
+                .Replace(title.ToLower(), @"[^a-z0-9\s-]", "")
+                .Replace(" ", "-");
         }
     }
 }
