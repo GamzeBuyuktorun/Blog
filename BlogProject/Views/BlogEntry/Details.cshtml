@@ -1,0 +1,46 @@
+@model BlogProject.Models.BlogEntry
+
+@{
+    ViewData["Title"] = Model?.Title ?? "Yazı";
+    var userId = Context.Session.GetInt32("UserId");
+    var isOwner = userId != null && Model.Blog?.OwnerId == userId;
+}
+
+<h2>@Model.Title</h2>
+
+<div class="text-muted mb-2">
+    <small>
+        Blog: <a asp-controller="Blog" asp-action="Details" asp-route-slug="@Model.Blog.Slug">
+            @Model.Blog.Title
+        </a>
+        · @Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+        @if (Model.UpdatedAt != Model.CreatedAt)
+        {
+            <span> · Güncellendi: @Model.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+        }
+    </small>
+</div>
+
+@* Blog sahibi için düzenle/sil butonları *@
+@if (isOwner)
+{
+    <div class="mb-3">
+        <a class="btn btn-outline-primary btn-sm" asp-controller="BlogEntry" asp-action="Edit" asp-route-id="@Model.Id">
+            <i class="fas fa-edit"></i> Düzenle
+        </a>
+        <a class="btn btn-outline-danger btn-sm ms-2" asp-controller="BlogEntry" asp-action="Delete" asp-route-id="@Model.Id"
+           onclick="return confirm('Bu yazıyı silmek istediğinizden emin misiniz?')">
+            <i class="fas fa-trash"></i> Sil
+        </a>
+    </div>
+}
+
+<hr />
+
+<div>
+    @Html.Raw(Model.HtmlContent)   <!-- Markdown'dan gelen HTML -->
+</div>
+
+<hr />
+
+<a class="btn btn-secondary" asp-controller="Blog" asp-action="Details" asp-route-slug="@Model.Blog.Slug">← Blog'a Dön</a>

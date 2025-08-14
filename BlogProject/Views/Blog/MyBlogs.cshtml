@@ -1,0 +1,111 @@
+@model IEnumerable<BlogProject.Models.Blog>
+
+@{
+    ViewData["Title"] = "Bloglarım";
+}
+
+<div class="mb-4">
+    <h2><i class="fas fa-user-edit"></i> Bloglarım</h2>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (Model != null && Model.Any())
+{
+    <div class="row">
+        @foreach (var blog in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="@Url.Action("Details", "Blog", new { slug = blog.Slug })" 
+                               class="text-decoration-none">
+                                @blog.Title
+                            </a>
+                        </h5>
+                        
+                        @if (!string.IsNullOrEmpty(blog.Description))
+                        {
+                            <p class="card-text text-muted small">@blog.Description</p>
+                        }
+                        
+                        <p class="text-muted small">
+                            <i class="fas fa-calendar"></i> @blog.CreatedAt.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))
+                            <br>
+                            <i class="fas fa-file-text"></i> @(blog.BlogEntries?.Count ?? 0) yazı
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-eye"></i> @blog.ViewCount görüntüleme
+                        </p>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="@Url.Action("Details", "Blog", new { slug = blog.Slug })" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye"></i> Görüntüle
+                            </a>
+                            
+                            <a href="@Url.Action("Edit", "Blog", new { id = blog.Id })" 
+                               class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-edit"></i> Düzenle
+                            </a>
+                            
+                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                    onclick="confirmDelete(@blog.Id, '@blog.Title')">
+                                <i class="fas fa-trash"></i> Sil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        <h5><i class="fas fa-info-circle"></i> Henüz blog yok</h5>
+        <p>Henüz hiç blog oluşturmadınız. Navbar'daki "Yeni Blog" butonunu kullanarak ilk blogunuzu oluşturun!</p>
+    </div>
+}
+
+<!-- Blog silme modalı -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Blog'u Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bu blog'u silmek istediğinizden emin misiniz?</p>
+                <p><strong id="blogTitle"></strong></p>
+                <p class="text-muted small">Bu işlem geri alınamaz ve tüm blog yazıları da silinecektir.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Evet, Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(blogId, blogTitle) {
+    document.getElementById('blogTitle').textContent = blogTitle;
+    document.getElementById('deleteForm').action = '@Url.Action("Delete", "Blog")/' + blogId;
+    
+    var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>

@@ -1,0 +1,77 @@
+@model BlogProject.Models.Blog
+
+@{
+    ViewData["Title"] = "Blog Detayı";
+    var currentUserId = Context.Session.GetInt32("UserId");
+}
+
+<div class="mb-4">
+    <h2>@Model.Title</h2>
+    <p class="text-muted">
+        <i class="fas fa-user"></i> @Model.Owner?.Username
+        <span class="mx-2">•</span>
+        <i class="fas fa-calendar"></i> @Model.CreatedAt.ToString("dd MMMM yyyy")
+        <span class="mx-2">•</span>
+        <i class="fas fa-eye"></i> @Model.ViewCount görüntüleme
+    </p>
+    
+    @if (currentUserId == Model.OwnerId)
+    {
+        <a asp-controller="BlogEntry" asp-action="Create" asp-route-blogId="@Model.Id" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Yeni Yazı Ekle
+        </a>
+    }
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (Model.BlogEntries == null || !Model.BlogEntries.Any())
+{
+    <div class="alert alert-info">
+        <h5>Henüz yazı yok</h5>
+        <p>Bu blogda henüz hiç yazı eklenmemiş.</p>
+    </div>
+}
+else
+{
+    <h4>Blog Yazıları (@Model.BlogEntries.Count)</h4>
+    
+    @foreach (var post in Model.BlogEntries.OrderByDescending(p => p.CreatedAt))
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="/Entry/@post.Slug">@post.Title</a>
+                </h5>
+                
+                <p class="text-muted small">
+                    @post.CreatedAt.ToString("dd MMMM yyyy HH:mm")
+                </p>
+                
+                @if (currentUserId == Model.OwnerId)
+                {
+                    <div class="mt-2">
+                        <a asp-controller="BlogEntry" asp-action="Edit" asp-route-id="@post.Id" 
+                           class="btn btn-outline-secondary btn-sm">
+                            Düzenle
+                        </a>
+                        
+                        <form asp-controller="BlogEntry" asp-action="Delete" asp-route-id="@post.Id" 
+                              method="post" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('Silmek istediğinizden emin misiniz?')">
+                                Sil
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
