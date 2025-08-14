@@ -1,40 +1,30 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlogProject.Models
 {
     public class BlogEntry
     {
-        [Key]
         public int Id { get; set; }
-
-        [Required]
-        public int BlogId { get; set; }
-
-        [Required]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-        [Required]
-        [StringLength(100)]
-        [Column(TypeName = "varchar(100)")]
-        public string Slug { get; set; } = string.Empty;
-
-        [Required]
-        [StringLength(200)]
-        [Column(TypeName = "varchar(200)")]
+        
+        [Required(ErrorMessage = "Başlık gereklidir")]
+        [StringLength(200, ErrorMessage = "Başlık en fazla 200 karakter olabilir")]
         public string Title { get; set; } = string.Empty;
-
-        [Required]
-        [Column(TypeName = "TEXT")]
-        public string Content { get; set; } = string.Empty; // Markdown içerik
-
-        [Column(TypeName = "TEXT")]
-        public string HtmlContent { get; set; } = string.Empty; // HTML'e dönüştürülmüş içerik
-
+        
+        [Required(ErrorMessage = "İçerik gereklidir")]
+        public string Content { get; set; } = string.Empty;
+        
+        // Slug otomatik oluşturuluyor, Required olmamalı
+        public string Slug { get; set; } = string.Empty;
+        
+        public string? HtmlContent { get; set; }
+        
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        
         // Foreign Key
-        [ForeignKey("BlogId")]
-        public virtual Blog Blog { get; set; } = null!;
+        public int BlogId { get; set; }
+        
+        // Navigation Property - Required olmamalı
+        public virtual Blog? Blog { get; set; }
     }
 }

@@ -3,42 +3,32 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+// Models/Blog.cs
 namespace BlogProject.Models
 {
     public class Blog
     {
-        [Key]
         public int Id { get; set; }
 
-        [Required]
         public int OwnerId { get; set; }
+        public User Owner { get; set; } = null!;
 
-        [Required]
-        [StringLength(100)]
-        [Column(TypeName = "varchar(100)")]
-        public string Slug { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Blog başlığı gereklidir")]
+        [MaxLength(150)]
+        public string Title { get; set; } = "";
 
-        [Required]
-        [StringLength(200)]
-        [Column(TypeName = "varchar(200)")]
-        public string Title { get; set; } = string.Empty;
+        [MaxLength(500)]
+        public string? Description { get; set; }
+
+        [MaxLength(160)]
+        public string Slug { get; set; } = "";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Foreign Key
-        [ForeignKey("OwnerId")]
-        public virtual User Owner { get; set; } = null!;
+        // Görüntüleme sayısı
+        public int ViewCount { get; set; } = 0;
 
-        // Navigation Property
-        public virtual ICollection<BlogEntry> BlogEntries { get; set; } = new List<BlogEntry>();
-
-        [NotMapped]
-        public ICollection<BlogEntry> Posts => BlogEntries;
-
-
-       
-
-      
+        public ICollection<BlogEntry> BlogEntries { get; set; } = new List<BlogEntry>();
     }
 }

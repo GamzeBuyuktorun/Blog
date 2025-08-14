@@ -29,40 +29,47 @@ namespace BlogProject.Controllers
             if (!ModelState.IsValid)
                 return View(user);
 
-            if (user.PasswordHash != passwordConfirm)
+            // user.PasswordHash burada "düz şifre" olarak geliyor (ViewModel yoksa)
+            if (string.IsNullOrWhiteSpace(user.PasswordHash) || user.PasswordHash != passwordConfirm)
             {
                 ModelState.AddModelError("", "Şifreler uyuşmuyor.");
                 return View(user);
             }
 
-            if (await _context.Users.AnyAsync(u => u.Email == user.Email || u.UserName == user.UserName))
+            // Username & Email benzersiz olmalı
+            if (await _context.Users.AnyAsync(u => u.Email == user.Email || u.Username == user.Username))
             {
-                ModelState.AddModelError("", "Bu email veya kullanıcı adı zaten kullanılıyor.");
+                ModelState.AddModelError("", "Bu e-posta veya kullanıcı adı zaten kullanılıyor.");
                 return View(user);
             }
 
-            // Eğer kullanıcı adı boşsa, email'den türet
-            if (string.IsNullOrWhiteSpace(user.UserName))
+            // Kullanıcı adı boşsa e-postadan türet
+            if (string.IsNullOrWhiteSpace(user.Username))
             {
                 var baseUsername = user.Email.Split('@')[0];
                 var username = baseUsername;
                 int count = 1;
 
-                while (await _context.Users.AnyAsync(u => u.UserName == username))
+                while (await _context.Users.AnyAsync(u => u.Username == username))
                 {
                     username = $"{baseUsername}{count++}";
                 }
 
-                user.UserName = username;
+                user.Username = username;
             }
 
+            // Şifreyi hash'le (salt:hash formatı)
             user.PasswordHash = HashPassword(user.PasswordHash);
             user.CreatedAt = DateTime.UtcNow;
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Login");
+            // Opsiyonel: kayıt sonrası login
+            HttpContext.Session.SetInt32("UserId", user.Id);
+            HttpContext.Session.SetString("Username", user.Username);
+
+            return RedirectToAction("Index", "Home");
         }
 
         // GET: /Account/Login
@@ -75,30 +82,34 @@ namespace BlogProject.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null || !VerifyPassword(password, user.PasswordHash))
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                ModelState.AddModelError("", "Email veya şifre hatalı.");
+                ModelState.AddModelError("", "E-posta ve şifre zorunludur.");
                 return View();
             }
 
-            if (string.IsNullOrEmpty(user.UserName))
-                user.UserName = "Bilinmeyen";
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null || !VerifyPassword(password, user.PasswordHash))
+            {
+                ModelState.AddModelError("", "E-posta veya şifre hatalı.");
+                return View();
+            }
 
             HttpContext.Session.SetInt32("UserId", user.Id);
-            HttpContext.Session.SetString("UserName", user.UserName);
+            HttpContext.Session.SetString("Username", user.Username);
 
             return RedirectToAction("Index", "Home");
         }
 
         // POST: /Account/Logout
+        [HttpPost]
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
             return RedirectToAction("Login");
         }
 
-        // Şifre hash'leme
+        // Şifre hash'leme (salt:hash)
         private string HashPassword(string password)
         {
             using var hmac = new HMACSHA512();
@@ -110,8 +121,8 @@ namespace BlogProject.Controllers
         // Şifre doğrulama
         private bool VerifyPassword(string password, string hashedPassword)
         {
-            var parts = hashedPassword.Split(':');
-            if (parts.Length != 2) return false;
+            var parts = hashedPassword?.Split(':');
+            if (parts == null || parts.Length != 2) return false;
 
             var salt = Convert.FromBase64String(parts[0]);
             var hash = Convert.FromBase64String(parts[1]);
