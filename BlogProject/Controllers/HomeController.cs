@@ -2,30 +2,23 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using BlogProject.Models;
 
-namespace BlogProject.Controllers;
 
-public class HomeController : Controller
+
+namespace BlogProject.Controllers
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
+    public class HomeController : Controller
     {
-        _logger = logger;
-    }
+        // Ana sayfa istekleri Blog/Index'e yönlendirilir
+        public IActionResult Index()
+        {
+            Console.WriteLine("=== HomeController Index - Blog/Index'e yönlendiriliyor ===");
+            return RedirectToAction("Index", "Blog");
+        }
 
-    public IActionResult Index()
-    {
-        return View();
-    }
-
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        // Hata sayfası
+        public IActionResult Error()
+        {
+            return View();
+        }
     }
 }
