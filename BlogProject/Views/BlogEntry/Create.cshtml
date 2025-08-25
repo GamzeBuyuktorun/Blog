@@ -1,0 +1,124 @@
+@model BlogProject.Models.BlogEntry
+@{
+    ViewData["Title"] = "Yeni Yazı";
+}
+
+<h2>Yeni Yazı</h2>
+
+<form asp-action="Create" method="post" asp-route-blogId="@ViewBag.BlogId">
+    @Html.AntiForgeryToken()
+
+    <!-- blogId mutlaka post edilmeli -->
+    <input type="hidden" name="blogId" value="@ViewBag.BlogId" />
+
+   <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="Title"></label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-2">
+        <label asp-for="Content">İçerik (Markdown)</label>
+        
+        <!-- Markdown Toolbar -->
+        <div class="btn-toolbar mb-2" role="toolbar">
+            <div class="btn-group btn-group-sm me-2" role="group">
+                <button type="button" class="btn btn-outline-secondary" onclick="insertMarkdown('**', '**')" title="Kalın">
+                    <b>B</b>
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="insertMarkdown('*', '*')" title="İtalik">
+                    <i>I</i>
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="insertMarkdown('`', '`')" title="Kod">
+                    Code
+                </button>
+            </div>
+            
+            <div class="btn-group btn-group-sm me-2" role="group">
+                <button type="button" class="btn btn-outline-secondary" onclick="insertMarkdown('# ', '')" title="Başlık 1">
+                    H1
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="insertMarkdown('## ', '')" title="Başlık 2">
+                    H2
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="insertMarkdown('### ', '')" title="Başlık 3">
+                    H3
+                </button>
+            </div>
+            
+            <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-outline-secondary" onclick="insertMarkdown('- ', '')" title="Liste">
+                    Liste
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="insertMarkdown('> ', '')" title="Alıntı">
+                    Alıntı
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="insertMarkdown('[Metin](', ')')" title="Link">
+                    Link
+                </button>
+            </div>
+        </div>
+
+        <textarea asp-for="Content" rows="12" class="form-control" id="content-editor" 
+                  style="font-family: 'Courier New', monospace; font-size: 14px;"></textarea>
+        <span asp-validation-for="Content" class="text-danger"></span>
+        
+        <!-- Markdown Yardımı -->
+        <small class="form-text text-muted">
+            <details>
+                <summary>Markdown Yardımı</summary>
+                <div class="mt-1">
+                    <code>**kalın**</code> <code>*italik*</code> <code>`kod`</code> <br>
+                    <code># Başlık</code> <code>- Liste</code> <code>> Alıntı</code> <br>
+                    <code>[Link](URL)</code> <code>![Resim](URL)</code>
+                </div>
+            </details>
+        </small>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Kaydet</button>
+    <a href="javascript:history.back()" class="btn btn-secondary mt-3 ms-2">İptal</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        function insertMarkdown(prefix, suffix) {
+            const textarea = document.getElementById('content-editor');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+            
+            const newText = prefix + selectedText + suffix;
+            
+            textarea.value = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+            
+            // Cursor pozisyonunu ayarla
+            if (selectedText.length === 0) {
+                textarea.setSelectionRange(start + prefix.length, start + prefix.length);
+            } else {
+                textarea.setSelectionRange(start + newText.length, start + newText.length);
+            }
+            
+            textarea.focus();
+        }
+    </script>
+}
+
+<style>
+    .btn-toolbar .btn {
+        font-size: 12px;
+    }
+    
+    details summary {
+        cursor: pointer;
+        color: #0066cc;
+    }
+    
+    details summary:hover {
+        text-decoration: underline;
+    }
+</style>
