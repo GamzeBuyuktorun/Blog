@@ -72,7 +72,7 @@ namespace BlogProject.Controllers
 
             if (duplicate)
             {
-               ModelState.AddModelError(string.Empty, "Aynı başlığa sahip bir yazı zaten var.");
+                ModelState.AddModelError(string.Empty, "Aynı başlığa sahip bir yazı zaten var.");
                 ViewBag.BlogId = blogId;
                 ViewBag.BlogTitle = blog.Title;
                 return View(entry);
@@ -91,16 +91,64 @@ namespace BlogProject.Controllers
             return RedirectToAction("Details", "Blog", new { slug = blog.Slug });
         }
 
-        // GET: /Entry/{slug}
+        // GET: /Entry/{slug} - URL'den slug ile erişim
         [HttpGet("/Entry/{slug}")]
         public async Task<IActionResult> Details(string slug)
         {
+            Console.WriteLine($"=== BlogEntry Details by SLUG - Slug: {slug} ===");
+            
             var entry = await _context.BlogEntries
                 .Include(e => e.Blog)
                 .ThenInclude(b => b.Owner)
+                .Include(e => e.Comments)
+                .ThenInclude(c => c.User)
+                .Include(e => e.Comments)
+                .ThenInclude(c => c.ParentComment)
+                .Include(e => e.Comments)
+                .ThenInclude(c => c.Replies)
+                .ThenInclude(r => r.User)
                 .FirstOrDefaultAsync(e => e.Slug == slug);
 
-            if (entry == null) return NotFound();
+            if (entry == null) 
+            {
+                Console.WriteLine($"BlogEntry bulunamadı - Slug: {slug}");
+                return NotFound();
+            }
+
+            Console.WriteLine($"BlogEntry bulundu - ID: {entry.Id}, Title: {entry.Title}");
+            Console.WriteLine($"CommentsEnabled: {entry.CommentsEnabled}");
+            Console.WriteLine($"Comments Count: {entry.Comments?.Count ?? 0}");
+
+            return View(entry);
+        }
+
+        // GET: /BlogEntry/Details/{id} - ID ile erişim (yorum sistemi için)
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            Console.WriteLine($"=== BlogEntry Details by ID - ID: {id} ===");
+            
+            var entry = await _context.BlogEntries
+                .Include(e => e.Blog)
+                .ThenInclude(b => b.Owner)
+                .Include(e => e.Comments)
+                .ThenInclude(c => c.User)
+                .Include(e => e.Comments)
+                .ThenInclude(c => c.ParentComment)
+                .Include(e => e.Comments)
+                .ThenInclude(c => c.Replies)
+                .ThenInclude(r => r.User)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (entry == null) 
+            {
+                Console.WriteLine($"BlogEntry bulunamadı - ID: {id}");
+                return NotFound();
+            }
+
+            Console.WriteLine($"BlogEntry bulundu - ID: {entry.Id}, Title: {entry.Title}");
+            Console.WriteLine($"CommentsEnabled: {entry.CommentsEnabled}");
+            Console.WriteLine($"Comments Count: {entry.Comments?.Count ?? 0}");
 
             return View(entry);
         }
@@ -110,7 +158,7 @@ namespace BlogProject.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             Console.WriteLine($"=== BlogEntry Edit GET - ID: {id} ===");
-            
+
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
@@ -138,7 +186,7 @@ namespace BlogProject.Controllers
         public async Task<IActionResult> Edit(int id, BlogEntry entry)
         {
             Console.WriteLine($"=== BlogEntry Edit POST - ID: {id} ===");
-            
+
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
@@ -196,7 +244,7 @@ namespace BlogProject.Controllers
                     // Yeni slug'ın blog içinde benzersiz olduğundan emin ol
                     var existingSlug = await _context.BlogEntries
                         .AnyAsync(e => e.BlogId == existingEntry.BlogId && e.Slug == newSlug && e.Id != id);
-                    
+
                     if (!existingSlug)
                     {
                         existingEntry.Slug = newSlug;
@@ -228,7 +276,7 @@ namespace BlogProject.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             Console.WriteLine($"=== BlogEntry Delete - ID: {id} ===");
-            
+
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
@@ -252,6 +300,41 @@ namespace BlogProject.Controllers
             Console.WriteLine("Blog yazısı başarıyla silindi");
             TempData["SuccessMessage"] = "Blog yazısı başarıyla silindi!";
             return RedirectToAction("Details", "Blog", new { slug = blogSlug });
+        }
+
+        // Yorumları açma/kapatma
+        [HttpPost]
+        public async Task<IActionResult> ToggleComments(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var blogEntry = await _context.BlogEntries
+                .Include(b => b.Blog)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (blogEntry == null)
+            {
+                return NotFound();
+            }
+
+            // Sadece blog sahibi yorumları açıp/kapatabilir
+            if (blogEntry.Blog?.OwnerId != userId)
+            {
+                TempData["ErrorMessage"] = "Bu işlemi yapma yetkiniz yok.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            blogEntry.CommentsEnabled = !blogEntry.CommentsEnabled;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = blogEntry.CommentsEnabled ? 
+                "Yorumlar açıldı." : "Yorumlar kapatıldı. Mevcut yorumlar gizlendi.";
+
+            return RedirectToAction("Details", new { id });
         }
 
         private string GenerateSlug(string title)

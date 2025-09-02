@@ -1,0 +1,78 @@
+@model BlogProject.Models.Comment
+
+@{
+    ViewData["Title"] = "Yorumu Düzenle";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-edit"></i> Yorumu Düzenle</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-muted">Blog Yazısı:</h6>
+                        <a asp-controller="BlogEntry" asp-action="Details" asp-route-id="@Model.BlogEntryId" 
+                           class="text-decoration-none">
+                            @Model.BlogEntry?.Title
+                        </a>
+                    </div>
+
+                    <form asp-controller="Comment" asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Yorum İçeriği</label>
+                            <textarea class="form-control" name="content" id="content" rows="6" required>@Model.Content</textarea>
+                            <small class="text-muted">
+                                <i class="fab fa-markdown"></i> 
+                                Markdown formatında yazabilirsiniz: **kalın**, *italik*, `kod`, [link](url)
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-eye"></i> Önizleme</h6>
+                                </div>
+                                <div class="card-body" id="preview">
+                                    <!-- Önizleme JavaScript ile doldurulacak -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a asp-controller="BlogEntry" asp-action="Details" asp-route-id="@Model.BlogEntryId" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Güncelle
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Markdown önizleme için basit JavaScript *@
+<script>
+    document.getElementById('content').addEventListener('input', function() {
+        const content = this.value;
+        // Basit markdown önizleme (gerçek uygulamada marked.js kullanabilirsiniz)
+        let preview = content
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/\n/g, '<br>');
+        
+        document.getElementById('preview').innerHTML = preview || '<em class="text-muted">Önizleme...</em>';
+    });
+    
+    // Sayfa yüklendiğinde önizlemeyi göster
+    document.getElementById('content').dispatchEvent(new Event('input'));
+</script>

@@ -1,0 +1,118 @@
+@model BlogProject.Models.Comment
+@using Markdig
+
+@{
+    var userId = Context.Session.GetInt32("UserId");
+    var isCommentOwner = userId != null && Model.UserId.HasValue && userId == Model.UserId;
+    var isBlogOwner = userId != null && Model.BlogEntry?.Blog?.OwnerId == userId;
+    var canEdit = isCommentOwner; // Sadece kayıtlı yorum sahipleri düzenleyebilir
+    var canDelete = isCommentOwner || isBlogOwner;
+    var indentLevel = ViewBag.IndentLevel ?? 0;
+    var maxIndentLevel = 6; // Maksimum indent seviyesi
+    var indentClass = indentLevel > 0 ? $"ms-{Math.Min(indentLevel * 3, maxIndentLevel * 3)}" : "";
+}
+
+<div class="comment-item @indentClass mb-3" data-comment-id="@Model.Id">
+    <div class="card">
+        <div class="card-body">
+            @* Cevap yorumu ise hangi yoruma cevap olduğunu göster *@
+            @if (Model.ParentCommentId.HasValue && Model.ParentComment != null)
+            {
+                <div class="reply-reference mb-2">
+                    <small class="text-muted">
+                        <i class="fas fa-reply me-1"></i>
+                        <strong>
+                            @if (Model.ParentComment.UserId.HasValue)
+                            {
+                                @Model.ParentComment.User?.Username
+                            }
+                            else
+                            {
+                                @Model.ParentComment.GuestName
+                            }
+                        </strong> kullanıcısına cevap
+                    </small>
+                </div>
+            }
+            
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="comment-author">
+                    <strong class="text-primary">
+                        <i class="fas fa-user-circle"></i> 
+                        @if (Model.UserId.HasValue)
+                        {
+                            @Model.User?.Username
+                        }
+                        else
+                        {
+                            @Model.GuestName <small class="text-muted">(misafir)</small>
+                        }
+                    </strong>
+                    <small class="text-muted ms-2">
+                        @Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                        @if (Model.UpdatedAt.HasValue && Model.UpdatedAt != Model.CreatedAt)
+                        {
+                            <span class="badge bg-warning text-dark ms-1">düzenlendi</span>
+                        }
+                    </small>
+                </div>
+                
+                @if (canEdit || canDelete)
+                {
+                    <div class="comment-actions dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            @if (canEdit)
+                            {
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Comment" asp-action="Edit" asp-route-id="@Model.Id">
+                                        <i class="fas fa-edit"></i> Düzenle
+                                    </a>
+                                </li>
+                            }
+                            @if (canDelete)
+                            {
+                                <li>
+                                    <form asp-controller="Comment" asp-action="Delete" asp-route-id="@Model.Id" method="post" 
+                                          id="deleteForm@(Model.Id)" class="d-inline">
+                                        <button type="button" class="dropdown-item text-danger" onclick="confirmDelete(@Model.Id)">
+                                            <i class="fas fa-trash"></i> Sil
+                                        </button>
+                                    </form>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+            
+            <div class="comment-content">
+                @Html.Raw(Markdown.ToHtml(Model.Content))
+            </div>
+            
+            @if (Model.BlogEntry?.CommentsEnabled == true)
+            {
+                <div class="comment-reply-btn mt-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                            onclick="replyToComment(@Model.Id, '@(Model.UserId.HasValue ? Model.User?.Username : Model.GuestName)')">
+                        <i class="fas fa-reply"></i> Cevapla
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+    
+    @* Alt yorumları göster (recursive) *@
+    @if (Model.Replies?.Any() == true)
+    {
+        <div class="comment-replies mt-3">
+            @foreach (var reply in Model.Replies.OrderBy(r => r.CreatedAt))
+            {
+                ViewBag.IndentLevel = indentLevel + 1;
+                @await Html.PartialAsync("_CommentPartial", reply)
+            }
+        </div>
+    }
+</div>
