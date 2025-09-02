@@ -72,7 +72,9 @@ namespace BlogProject.Controllers
 
             if (duplicate)
             {
+
                 ModelState.AddModelError(string.Empty, "Aynı başlığa sahip bir yazı zaten var.");
+
                 ViewBag.BlogId = blogId;
                 ViewBag.BlogTitle = blog.Title;
                 return View(entry);
@@ -90,6 +92,7 @@ namespace BlogProject.Controllers
             TempData["SuccessMessage"] = "Blog yazısı başarıyla oluşturuldu!";
             return RedirectToAction("Details", "Blog", new { slug = blog.Slug });
         }
+
 
         // GET: /Entry/{slug} - URL'den slug ile erişim
         [HttpGet("/Entry/{slug}")]
@@ -150,6 +153,7 @@ namespace BlogProject.Controllers
             Console.WriteLine($"CommentsEnabled: {entry.CommentsEnabled}");
             Console.WriteLine($"Comments Count: {entry.Comments?.Count ?? 0}");
 
+
             return View(entry);
         }
 
@@ -158,6 +162,8 @@ namespace BlogProject.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             Console.WriteLine($"=== BlogEntry Edit GET - ID: {id} ===");
+
+
 
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
@@ -186,6 +192,8 @@ namespace BlogProject.Controllers
         public async Task<IActionResult> Edit(int id, BlogEntry entry)
         {
             Console.WriteLine($"=== BlogEntry Edit POST - ID: {id} ===");
+
+
 
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
@@ -245,6 +253,8 @@ namespace BlogProject.Controllers
                     var existingSlug = await _context.BlogEntries
                         .AnyAsync(e => e.BlogId == existingEntry.BlogId && e.Slug == newSlug && e.Id != id);
 
+
+
                     if (!existingSlug)
                     {
                         existingEntry.Slug = newSlug;
@@ -277,6 +287,8 @@ namespace BlogProject.Controllers
         {
             Console.WriteLine($"=== BlogEntry Delete - ID: {id} ===");
 
+
+
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
@@ -301,6 +313,7 @@ namespace BlogProject.Controllers
             TempData["SuccessMessage"] = "Blog yazısı başarıyla silindi!";
             return RedirectToAction("Details", "Blog", new { slug = blogSlug });
         }
+
 
         // Yorumları açma/kapatma
         [HttpPost]
@@ -336,6 +349,7 @@ namespace BlogProject.Controllers
 
             return RedirectToAction("Details", new { id });
         }
+
 
         private string GenerateSlug(string title)
         {

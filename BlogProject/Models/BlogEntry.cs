@@ -6,6 +6,7 @@ namespace BlogProject.Models
     {
         public int Id { get; set; }
 
+
         [Required(ErrorMessage = "Başlık gereklidir")]
         [StringLength(200, ErrorMessage = "Başlık en fazla 200 karakter olabilir")]
         public string Title { get; set; } = string.Empty;
@@ -30,5 +31,6 @@ namespace BlogProject.Models
         // Navigation Property - Required olmamalı
         public virtual Blog? Blog { get; set; }
         public List<Comment> Comments { get; set; } = new();
+
     }
 }
