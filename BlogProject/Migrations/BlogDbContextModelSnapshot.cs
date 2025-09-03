@@ -67,8 +67,10 @@ namespace BlogProject.Migrations
                     b.Property<int>("BlogId")
                         .HasColumnType("INTEGER");
 
+
                     b.Property<bool>("CommentsEnabled")
                         .HasColumnType("INTEGER");
+
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -100,6 +102,7 @@ namespace BlogProject.Migrations
 
                     b.ToTable("BlogEntries");
                 });
+
 
             modelBuilder.Entity("BlogProject.Models.Comment", b =>
                 {
@@ -148,6 +151,7 @@ namespace BlogProject.Migrations
 
                     b.ToTable("Comments");
                 });
+
 
             modelBuilder.Entity("BlogProject.Models.User", b =>
                 {
@@ -207,6 +211,7 @@ namespace BlogProject.Migrations
                     b.Navigation("Blog");
                 });
 
+
             modelBuilder.Entity("BlogProject.Models.Comment", b =>
                 {
                     b.HasOne("BlogProject.Models.BlogEntry", "BlogEntry")
@@ -232,10 +237,12 @@ namespace BlogProject.Migrations
                     b.Navigation("User");
                 });
 
+
             modelBuilder.Entity("BlogProject.Models.Blog", b =>
                 {
                     b.Navigation("BlogEntries");
                 });
+
 
             modelBuilder.Entity("BlogProject.Models.BlogEntry", b =>
                 {
@@ -246,6 +253,7 @@ namespace BlogProject.Migrations
                 {
                     b.Navigation("Replies");
                 });
+
 
             modelBuilder.Entity("BlogProject.Models.User", b =>
                 {

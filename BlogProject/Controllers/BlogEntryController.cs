@@ -72,7 +72,9 @@ namespace BlogProject.Controllers
 
             if (duplicate)
             {
+
                 ModelState.AddModelError(string.Empty, "Aynı başlığa sahip bir yazı zaten var.");
+
                 ViewBag.BlogId = blogId;
                 ViewBag.BlogTitle = blog.Title;
                 return View(entry);
@@ -90,6 +92,7 @@ namespace BlogProject.Controllers
             TempData["SuccessMessage"] = "Blog yazısı başarıyla oluşturuldu!";
             return RedirectToAction("Details", "Blog", new { slug = blog.Slug });
         }
+
 
         // GET: /Entry/{slug} - URL'den slug ile erişim
         [HttpGet("/Entry/{slug}")]
@@ -130,6 +133,7 @@ namespace BlogProject.Controllers
 
             if (entry == null) return NotFound();
 
+
             return View(entry);
         }
 
@@ -137,6 +141,7 @@ namespace BlogProject.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
@@ -162,6 +167,7 @@ namespace BlogProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, BlogEntry entry)
         {
+
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
@@ -216,6 +222,8 @@ namespace BlogProject.Controllers
                     var existingSlug = await _context.BlogEntries
                         .AnyAsync(e => e.BlogId == existingEntry.BlogId && e.Slug == newSlug && e.Id != id);
 
+
+
                     if (!existingSlug)
                     {
                         existingEntry.Slug = newSlug;
@@ -244,6 +252,7 @@ namespace BlogProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
+
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
@@ -267,6 +276,7 @@ namespace BlogProject.Controllers
             TempData["SuccessMessage"] = "Blog yazısı başarıyla silindi!";
             return RedirectToAction("Details", "Blog", new { slug = blogSlug });
         }
+
 
         // Yorumları açma/kapatma
         [HttpPost]
@@ -302,6 +312,7 @@ namespace BlogProject.Controllers
 
             return RedirectToAction("Details", new { id });
         }
+
 
         private string GenerateSlug(string title)
         {

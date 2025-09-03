@@ -4,7 +4,9 @@
     ViewData["Title"] = Model?.Title ?? "Yazı";
     var userId = Context.Session.GetInt32("UserId");
     var isOwner = userId != null && Model.Blog?.OwnerId == userId;
+
     var isLoggedIn = userId != null;
+
 }
 
 <h2>@Model.Title</h2>
@@ -33,6 +35,7 @@
            onclick="return confirm('Bu yazıyı silmek istediğinizden emin misiniz?')">
             <i class="fas fa-trash"></i> Sil
         </a>
+
         
         @* Blog sahibi için yorumları açma/kapatma butonu *@
         <form asp-controller="BlogEntry" asp-action="ToggleComments" asp-route-id="@Model.Id" method="post" class="d-inline ms-2">
@@ -47,6 +50,7 @@
                 }
             </button>
         </form>
+
     </div>
 }
 
@@ -57,6 +61,7 @@
 </div>
 
 <hr />
+
 
 @* YORUM SİSTEMİ *@
 <div class="comments-section">
@@ -206,3 +211,4 @@
         }
     }
 </script>
+

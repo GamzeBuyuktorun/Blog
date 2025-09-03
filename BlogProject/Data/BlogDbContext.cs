@@ -10,7 +10,9 @@ namespace BlogProject.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<Blog> Blogs => Set<Blog>();
         public DbSet<BlogEntry> BlogEntries => Set<BlogEntry>();
+
         public DbSet<Comment> Comments => Set<Comment>();
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,6 +55,7 @@ namespace BlogProject.Data
                 .HasForeignKey(e => e.BlogId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+
             // Comment yapılandırması
             modelBuilder.Entity<Comment>(entity =>
             {
@@ -85,3 +88,4 @@ namespace BlogProject.Data
         }
     }
 }
+
