@@ -95,8 +95,6 @@ namespace BlogProject.Controllers
         [HttpGet("/Entry/{slug}")]
         public async Task<IActionResult> Details(string slug)
         {
-            Console.WriteLine($"=== BlogEntry Details by SLUG - Slug: {slug} ===");
-            
             var entry = await _context.BlogEntries
                 .Include(e => e.Blog)
                 .ThenInclude(b => b.Owner)
@@ -109,15 +107,7 @@ namespace BlogProject.Controllers
                 .ThenInclude(r => r.User)
                 .FirstOrDefaultAsync(e => e.Slug == slug);
 
-            if (entry == null) 
-            {
-                Console.WriteLine($"BlogEntry bulunamadı - Slug: {slug}");
-                return NotFound();
-            }
-
-            Console.WriteLine($"BlogEntry bulundu - ID: {entry.Id}, Title: {entry.Title}");
-            Console.WriteLine($"CommentsEnabled: {entry.CommentsEnabled}");
-            Console.WriteLine($"Comments Count: {entry.Comments?.Count ?? 0}");
+            if (entry == null) return NotFound();
 
             return View(entry);
         }
@@ -126,8 +116,6 @@ namespace BlogProject.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            Console.WriteLine($"=== BlogEntry Details by ID - ID: {id} ===");
-            
             var entry = await _context.BlogEntries
                 .Include(e => e.Blog)
                 .ThenInclude(b => b.Owner)
@@ -140,15 +128,7 @@ namespace BlogProject.Controllers
                 .ThenInclude(r => r.User)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
-            if (entry == null) 
-            {
-                Console.WriteLine($"BlogEntry bulunamadı - ID: {id}");
-                return NotFound();
-            }
-
-            Console.WriteLine($"BlogEntry bulundu - ID: {entry.Id}, Title: {entry.Title}");
-            Console.WriteLine($"CommentsEnabled: {entry.CommentsEnabled}");
-            Console.WriteLine($"Comments Count: {entry.Comments?.Count ?? 0}");
+            if (entry == null) return NotFound();
 
             return View(entry);
         }
@@ -157,8 +137,6 @@ namespace BlogProject.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            Console.WriteLine($"=== BlogEntry Edit GET - ID: {id} ===");
-
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
@@ -174,7 +152,6 @@ namespace BlogProject.Controllers
                 return Unauthorized();
             }
 
-            Console.WriteLine($"Blog yazısı bulundu: {entry.Title}");
             ViewBag.BlogId = entry.BlogId;
             ViewBag.BlogTitle = entry.Blog.Title;
             return View(entry);
@@ -185,8 +162,6 @@ namespace BlogProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, BlogEntry entry)
         {
-            Console.WriteLine($"=== BlogEntry Edit POST - ID: {id} ===");
-
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
@@ -207,8 +182,6 @@ namespace BlogProject.Controllers
                 return Unauthorized();
             }
 
-            Console.WriteLine($"Gelen yazı Title: {entry.Title}");
-
             // ModelState'den otomatik doldurulan alanların hatalarını temizle
             ModelState.Remove("Blog");
             ModelState.Remove("BlogId");
@@ -216,8 +189,6 @@ namespace BlogProject.Controllers
             ModelState.Remove("UpdatedAt");
             ModelState.Remove("Slug");
             ModelState.Remove("HtmlContent");
-
-            Console.WriteLine($"ModelState Valid: {ModelState.IsValid}");
 
             if (!ModelState.IsValid)
             {
@@ -256,13 +227,11 @@ namespace BlogProject.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                Console.WriteLine("Blog yazısı başarıyla güncellendi");
                 TempData["SuccessMessage"] = "Blog yazısı başarıyla güncellendi!";
                 return RedirectToAction("Details", new { slug = existingEntry.Slug });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Veritabanı hatası: {ex.Message}");
                 ModelState.AddModelError("", "Blog yazısı güncellenirken bir hata oluştu.");
                 ViewBag.BlogId = existingEntry.BlogId;
                 ViewBag.BlogTitle = existingEntry.Blog.Title;
@@ -275,8 +244,6 @@ namespace BlogProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            Console.WriteLine($"=== BlogEntry Delete - ID: {id} ===");
-
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
@@ -297,7 +264,6 @@ namespace BlogProject.Controllers
             _context.BlogEntries.Remove(entry);
             await _context.SaveChangesAsync();
 
-            Console.WriteLine("Blog yazısı başarıyla silindi");
             TempData["SuccessMessage"] = "Blog yazısı başarıyla silindi!";
             return RedirectToAction("Details", "Blog", new { slug = blogSlug });
         }
