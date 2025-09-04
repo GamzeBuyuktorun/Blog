@@ -77,7 +77,7 @@ namespace BlogProject.Controllers
                 GuestName = !isLoggedIn ? guestName?.Trim() : null,
                 GuestEmail = !isLoggedIn ? guestEmail?.Trim() : null,
                 Content = content.Trim(),
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow  
             };
 
             _context.Comments.Add(comment);
@@ -146,7 +146,7 @@ namespace BlogProject.Controllers
             }
 
             comment.Content = content.Trim();
-            comment.UpdatedAt = DateTime.Now;
+            comment.UpdatedAt = DateTime.UtcNow; 
 
             await _context.SaveChangesAsync();
 

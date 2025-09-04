@@ -22,7 +22,7 @@ namespace BlogProject.Models
         [StringLength(5000)]
         public string Content { get; set; } = string.Empty; // Markdown formatında
         
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
         public DateTime? UpdatedAt { get; set; }
         

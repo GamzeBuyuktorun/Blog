@@ -110,8 +110,8 @@ namespace BlogProject.Controllers
             
             // Manuel olarak gerekli alanları doldur
             blog.OwnerId = userId.Value;
-            blog.CreatedAt = DateTime.Now;
-            blog.UpdatedAt = DateTime.Now;
+            blog.CreatedAt = DateTime.UtcNow;
+            blog.UpdatedAt = DateTime.UtcNow;
             blog.Slug = GenerateSlug(blog.Title);
             
             Console.WriteLine($"Oluşturulan Slug: {blog.Slug}");
@@ -142,7 +142,7 @@ namespace BlogProject.Controllers
                 var existingSlug = await _context.Blogs.AnyAsync(b => b.Slug == blog.Slug);
                 if (existingSlug)
                 {
-                    blog.Slug += "-" + DateTime.Now.Ticks.ToString()[^6..];
+                    blog.Slug += "-" + DateTime.UtcNow.Ticks.ToString()[^6..];
                     Console.WriteLine($"Slug benzersiz değildi, yeni Slug: {blog.Slug}");
                 }
 
@@ -280,7 +280,7 @@ namespace BlogProject.Controllers
                 {
                     existingBlog.Title = blog.Title;
                     existingBlog.Description = blog.Description;
-                    existingBlog.UpdatedAt = DateTime.Now;
+                    existingBlog.UpdatedAt = DateTime.UtcNow;
                     
                     // Başlık değişirse slug'ı da güncelle
                     if (existingBlog.Title != blog.Title)
@@ -292,7 +292,7 @@ namespace BlogProject.Controllers
                             .AnyAsync(b => b.Slug == existingBlog.Slug && b.Id != id);
                         if (existingSlug)
                         {
-                            existingBlog.Slug += "-" + DateTime.Now.Ticks.ToString()[^6..];
+                           existingBlog.Slug += "-" + DateTime.UtcNow.Ticks.ToString()[^6..];
                         }
                     }
 
