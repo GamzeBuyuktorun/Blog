@@ -19,6 +19,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push Docker Image
+        working-directory: ./BlogProject
         run: |
           COMMIT_SHA="${GITHUB_SHA:0:7}"
 
