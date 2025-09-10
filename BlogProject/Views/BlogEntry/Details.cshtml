@@ -31,12 +31,18 @@
         <a class="btn btn-outline-primary btn-sm" asp-controller="BlogEntry" asp-action="Edit" asp-route-id="@Model.Id">
             <i class="fas fa-edit"></i> Düzenle
         </a>
-        <a class="btn btn-outline-danger btn-sm ms-2" asp-controller="BlogEntry" asp-action="Delete" asp-route-id="@Model.Id"
-           onclick="return confirm('Bu yazıyı silmek istediğinizden emin misiniz?')">
-            <i class="fas fa-trash"></i> Sil
-        </a>
 
         
+        <form asp-controller="BlogEntry" asp-action="Delete" asp-route-id="@Model.Id" 
+              method="post" style="display: inline;" class="ms-2">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger btn-sm"
+                    onclick="return confirm('Bu yazıyı silmek istediğinizden emin misiniz?')">
+                <i class="fas fa-trash"></i> Sil
+            </button>
+        </form>
+
+
         @* Blog sahibi için yorumları açma/kapatma butonu *@
         <form asp-controller="BlogEntry" asp-action="ToggleComments" asp-route-id="@Model.Id" method="post" class="d-inline ms-2">
             <button type="submit" class="btn btn-outline-secondary btn-sm">
@@ -50,6 +56,7 @@
                 }
             </button>
         </form>
+
 
     </div>
 }
@@ -210,5 +217,6 @@
             document.getElementById('deleteForm' + commentId).submit();
         }
     }
+
 </script>
 

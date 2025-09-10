@@ -17,9 +17,24 @@
     
     @if (currentUserId == Model.OwnerId)
     {
-        <a asp-controller="BlogEntry" asp-action="Create" asp-route-blogId="@Model.Id" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Yeni Yazı Ekle
-        </a>
+        <div class="mb-3">
+            <a asp-controller="BlogEntry" asp-action="Create" asp-route-blogId="@Model.Id" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Yeni Yazı Ekle
+            </a>
+            
+            <a asp-controller="Blog" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-edit"></i> Blog'u Düzenle
+            </a>
+            
+            <form asp-controller="Blog" asp-action="Delete" asp-route-id="@Model.Id" 
+                  method="post" style="display: inline;" class="ms-2">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger"
+                        onclick="return confirm('Bu blog\'u ve tüm yazılarını silmek istediğinizden emin misiniz?')">
+                    <i class="fas fa-trash"></i> Blog'u Sil
+                </button>
+            </form>
+        </div>
     }
 </div>
 

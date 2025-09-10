@@ -3,6 +3,7 @@ using System;
 using BlogProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BlogProject.Migrations
 {
     [DbContext(typeof(BlogDbContext))]
-    partial class BlogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250904092332_InitialPostgreSQL")]
+    partial class InitialPostgreSQL
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,11 +82,6 @@ namespace BlogProject.Migrations
                     b.Property<bool>("CommentsEnabled")
                         .HasColumnType("boolean");
 
-
-                    b.Property<bool>("CommentsEnabled")
-                        .HasColumnType("INTEGER");
-
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
@@ -115,13 +113,10 @@ namespace BlogProject.Migrations
                     b.ToTable("BlogEntries");
                 });
 
-
-
             modelBuilder.Entity("BlogProject.Models.Comment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
@@ -129,11 +124,9 @@ namespace BlogProject.Migrations
                     b.Property<int>("BlogEntryId")
                         .HasColumnType("integer");
 
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(5000)
-
                         .HasColumnType("character varying(5000)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -153,7 +146,6 @@ namespace BlogProject.Migrations
 
                     b.Property<int?>("UserId")
                         .HasColumnType("integer");
-
 
                     b.HasKey("Id");
 
@@ -231,7 +223,6 @@ namespace BlogProject.Migrations
                     b.Navigation("Blog");
                 });
 
-
             modelBuilder.Entity("BlogProject.Models.Comment", b =>
                 {
                     b.HasOne("BlogProject.Models.BlogEntry", "BlogEntry")
@@ -262,7 +253,6 @@ namespace BlogProject.Migrations
                     b.Navigation("BlogEntries");
                 });
 
-
             modelBuilder.Entity("BlogProject.Models.BlogEntry", b =>
                 {
                     b.Navigation("Comments");
@@ -272,7 +262,6 @@ namespace BlogProject.Migrations
                 {
                     b.Navigation("Replies");
                 });
-
 
             modelBuilder.Entity("BlogProject.Models.User", b =>
                 {
