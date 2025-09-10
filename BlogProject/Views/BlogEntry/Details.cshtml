@@ -4,6 +4,9 @@
     ViewData["Title"] = Model?.Title ?? "Yazı";
     var userId = Context.Session.GetInt32("UserId");
     var isOwner = userId != null && Model.Blog?.OwnerId == userId;
+
+    var isLoggedIn = userId != null;
+
 }
 
 <h2>@Model.Title</h2>
@@ -32,6 +35,22 @@
            onclick="return confirm('Bu yazıyı silmek istediğinizden emin misiniz?')">
             <i class="fas fa-trash"></i> Sil
         </a>
+
+        
+        @* Blog sahibi için yorumları açma/kapatma butonu *@
+        <form asp-controller="BlogEntry" asp-action="ToggleComments" asp-route-id="@Model.Id" method="post" class="d-inline ms-2">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                @if (Model.CommentsEnabled)
+                {
+                    <i class="fas fa-comment-slash"></i> <span>Yorumları Kapat</span>
+                }
+                else
+                {
+                    <i class="fas fa-comment"></i> <span>Yorumları Aç</span>
+                }
+            </button>
+        </form>
+
     </div>
 }
 
@@ -43,4 +62,153 @@
 
 <hr />
 
+
+@* YORUM SİSTEMİ *@
+<div class="comments-section">
+    <h4>
+        <i class="fas fa-comments"></i> Yorumlar 
+        <span class="badge bg-secondary">@Model.Comments.Count</span>
+    </h4>
+
+    @if (Model.CommentsEnabled)
+    {
+        @* Yorum Ekleme Formu *@
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-pen"></i> Yorum Yaz</h5>
+            </div>
+            <div class="card-body">
+                <form asp-controller="Comment" asp-action="Add" method="post">
+                    <input type="hidden" name="blogEntryId" value="@Model.Id" />
+                    <input type="hidden" name="parentCommentId" value="" id="parentCommentIdInput" />
+                    
+                    <div class="mb-3" id="replyInfo" style="display: none;">
+                        <div class="alert alert-info d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-reply"></i> <span id="replyToUser"></span> kullanıcısına cevap yazıyorsunuz</span>
+                            <button type="button" class="btn-close" onclick="cancelReply()"></button>
+                        </div>
+                    </div>
+                    
+                    @if (!isLoggedIn)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="guestName" class="form-label">Adınız <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="guestName" id="guestName" placeholder="Adınızı yazın" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="guestEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" name="guestEmail" id="guestEmail" placeholder="email@example.com" required>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i> 
+                                Email adresiniz görüntülenmeyecek, sadece bildirim amaçlı kullanılacaktır.
+                            </small>
+                        </div>
+                    }
+                    
+                    <div class="mb-3">
+                        <textarea class="form-control" name="content" rows="4" placeholder="Yorumunuzu yazın... (Markdown desteklenir)" required></textarea>
+                        <small class="text-muted">
+                            <i class="fab fa-markdown"></i> 
+                            Markdown formatında yazabilirsiniz: **kalın**, *italik*, `kod`, [link](url)
+                        </small>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Yorumu Gönder
+                        </button>
+                        <button type="button" class="btn btn-link text-muted" onclick="cancelReply()" id="cancelReplyBtn" style="display: none;">
+                            İptal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @* Yorumları Göster - Açık Yorumlar *@
+        @if (Model.Comments.Any())
+        {
+            <div class="comments-list">
+                @foreach (var comment in Model.Comments.Where(c => c.ParentCommentId == null).OrderBy(c => c.CreatedAt))
+                {
+                    @await Html.PartialAsync("_CommentPartial", comment)
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-comment-alt fa-3x mb-3"></i>
+                <p>Henüz yorum yapılmamış. İlk yorumu sen yap!</p>
+            </div>
+        }
+    }
+    else
+    {
+        @* Yorumlar Kapalı Durumu *@
+        @if (isOwner)
+        {
+            @* Blog sahibi kapalı yorumları da görebilir *@
+            <div class="alert alert-warning">
+                <i class="fas fa-eye-slash"></i> 
+                <strong>Yorumlar kapalı</strong> - Sadece sen görebilirsin 
+                @if (Model.Comments.Any())
+                {
+                    <span>(@Model.Comments.Count yorum mevcut)</span>
+                }
+            </div>
+            
+            @if (Model.Comments.Any())
+            {
+                <div class="comments-list">
+                    @foreach (var comment in Model.Comments.Where(c => c.ParentCommentId == null).OrderBy(c => c.CreatedAt))
+                    {
+                        @await Html.PartialAsync("_CommentPartial", comment)
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            @* Diğer herkes sadece kapalı mesajını görebilir *@
+            <div class="alert alert-info">
+                <i class="fas fa-comment-slash"></i> Bu yazıya yorum yapma özelliği kapatılmış.
+            </div>
+        }
+    }
+</div>
+
+<hr />
+
 <a class="btn btn-secondary" asp-controller="Blog" asp-action="Details" asp-route-slug="@Model.Blog.Slug">← Blog'a Dön</a>
+
+@* JavaScript için Yorum Fonksiyonları *@
+<script>
+    function replyToComment(commentId, userName) {
+        document.getElementById('parentCommentIdInput').value = commentId;
+        document.getElementById('replyToUser').textContent = userName;
+        document.getElementById('replyInfo').style.display = 'block';
+        document.getElementById('cancelReplyBtn').style.display = 'inline-block';
+        
+        // Forma scroll
+        document.querySelector('textarea[name="content"]').scrollIntoView({ behavior: 'smooth' });
+        document.querySelector('textarea[name="content"]').focus();
+    }
+
+    function cancelReply() {
+        document.getElementById('parentCommentIdInput').value = '';
+        document.getElementById('replyInfo').style.display = 'none';
+        document.getElementById('cancelReplyBtn').style.display = 'none';
+    }
+
+    function confirmDelete(commentId) {
+        if (confirm('Bu yorumu silmek istediğinizden emin misiniz?')) {
+            document.getElementById('deleteForm' + commentId).submit();
+        }
+    }
+</script>
+

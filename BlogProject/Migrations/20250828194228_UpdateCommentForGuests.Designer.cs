@@ -3,6 +3,7 @@ using System;
 using BlogProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlogProject.Migrations
 {
     [DbContext(typeof(BlogDbContext))]
-    partial class BlogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250828194228_UpdateCommentForGuests")]
+    partial class UpdateCommentForGuests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.7");
@@ -67,10 +70,8 @@ namespace BlogProject.Migrations
                     b.Property<int>("BlogId")
                         .HasColumnType("INTEGER");
 
-
                     b.Property<bool>("CommentsEnabled")
                         .HasColumnType("INTEGER");
-
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -102,7 +103,6 @@ namespace BlogProject.Migrations
 
                     b.ToTable("BlogEntries");
                 });
-
 
             modelBuilder.Entity("BlogProject.Models.Comment", b =>
                 {
@@ -151,7 +151,6 @@ namespace BlogProject.Migrations
 
                     b.ToTable("Comments");
                 });
-
 
             modelBuilder.Entity("BlogProject.Models.User", b =>
                 {
@@ -211,7 +210,6 @@ namespace BlogProject.Migrations
                     b.Navigation("Blog");
                 });
 
-
             modelBuilder.Entity("BlogProject.Models.Comment", b =>
                 {
                     b.HasOne("BlogProject.Models.BlogEntry", "BlogEntry")
@@ -237,12 +235,10 @@ namespace BlogProject.Migrations
                     b.Navigation("User");
                 });
 
-
             modelBuilder.Entity("BlogProject.Models.Blog", b =>
                 {
                     b.Navigation("BlogEntries");
                 });
-
 
             modelBuilder.Entity("BlogProject.Models.BlogEntry", b =>
                 {
@@ -253,7 +249,6 @@ namespace BlogProject.Migrations
                 {
                     b.Navigation("Replies");
                 });
-
 
             modelBuilder.Entity("BlogProject.Models.User", b =>
                 {

@@ -138,7 +138,7 @@ namespace BlogProject.Controllers
             {
                 Console.WriteLine("ModelState geçerli - Blog kaydediliyor");
                 
-                // Slug'ın benzersiz olduğundan emin ol
+               
                 var existingSlug = await _context.Blogs.AnyAsync(b => b.Slug == blog.Slug);
                 if (existingSlug)
                 {

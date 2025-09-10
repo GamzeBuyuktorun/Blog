@@ -11,6 +11,9 @@ namespace BlogProject.Data
         public DbSet<Blog> Blogs => Set<Blog>();
         public DbSet<BlogEntry> BlogEntries => Set<BlogEntry>();
 
+        public DbSet<Comment> Comments => Set<Comment>();
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -51,6 +54,38 @@ namespace BlogProject.Data
                 .WithOne(e => e.Blog)
                 .HasForeignKey(e => e.BlogId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+
+            // Comment yapılandırması
+            modelBuilder.Entity<Comment>(entity =>
+            {
+                // BlogEntry ile ilişki
+                entity.HasOne(c => c.BlogEntry)
+                      .WithMany(b => b.Comments)
+                      .HasForeignKey(c => c.BlogEntryId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                
+                // User ile ilişki (opsiyonel - misafir kullanıcılar için)
+                entity.HasOne(c => c.User)
+                      .WithMany()
+                      .HasForeignKey(c => c.UserId)
+                      .OnDelete(DeleteBehavior.SetNull); // User silinirse UserId null olur
+                
+                // Self-referencing relationship (Parent-Child yorumlar)
+                entity.HasOne(c => c.ParentComment)
+                      .WithMany(c => c.Replies)
+                      .HasForeignKey(c => c.ParentCommentId)
+                      .OnDelete(DeleteBehavior.Cascade); // Parent silinirse children da silinir
+                
+                // İndeksler
+                entity.HasIndex(c => c.BlogEntryId)
+                      .HasDatabaseName("idx_comment_blog_entry_id");
+                entity.HasIndex(c => c.ParentCommentId)
+                      .HasDatabaseName("idx_comment_parent_id");
+                entity.HasIndex(c => c.CreatedAt)
+                      .HasDatabaseName("idx_comment_created_at");
+            });
         }
     }
 }
+
