@@ -1,11 +1,15 @@
 using BlogProject.Data;
 using Microsoft.EntityFrameworkCore;
+using DotNetEnv;
+
+// load environment variables from `.env`
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
 // DbContext
 builder.Services.AddDbContext<BlogDbContext>(options =>
-   options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+   options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"))
 );
 
 // Session (cache + session)
