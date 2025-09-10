@@ -5,7 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // DbContext
 builder.Services.AddDbContext<BlogDbContext>(options =>
-   options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+   options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
 // Session (cache + session)
 builder.Services.AddDistributedMemoryCache();
@@ -27,7 +28,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
-    db.Database.Migrate();
+    if (db.Database.GetPendingMigrations().Any()) {
+        await db.Database.MigrateAsync();
+    }
 }
 
 if (app.Environment.IsDevelopment())
